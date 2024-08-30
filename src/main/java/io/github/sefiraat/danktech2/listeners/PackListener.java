@@ -19,6 +19,7 @@ import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.libraries.dough.protection.Interaction;
 import net.md_5.bungee.api.ChatMessageType;
 import net.md_5.bungee.api.chat.TextComponent;
+import org.bukkit.Location;
 import org.bukkit.Material;
 import org.bukkit.block.Block;
 import org.bukkit.entity.Entity;
@@ -32,6 +33,7 @@ import org.bukkit.inventory.ItemStack;
 import org.bukkit.inventory.meta.ItemMeta;
 
 import java.text.MessageFormat;
+import java.util.Arrays;
 import java.util.Collection;
 
 public class PackListener implements Listener {
@@ -139,7 +141,7 @@ public class PackListener implements Listener {
                     ThemeType.toTitleCase(stackToPlace.getType().toString()))
                 )
             );
-        } else if (!stackToPlace.getType().isBlock() || stackToPlace.hasItemMeta()) {
+        } else if (!stackToPlace.getType().isSolid() || stackToPlace.hasItemMeta()) {
             player.spigot().sendMessage(
                 ChatMessageType.ACTION_BAR,
                 TextComponent.fromLegacyText(MessageFormat.format(
@@ -166,10 +168,11 @@ public class PackListener implements Listener {
     }
 
     private boolean isSafeToBuild(Block block, Player player) {
-        if (block.getBlockData().getMaterial().equals(Material.AIR)
+        if (Arrays.asList(Material.AIR, Material.WATER, Material.LAVA).contains(block.getBlockData().getMaterial())
             && Slimefun.getProtectionManager().hasPermission(player, block, Interaction.PLACE_BLOCK)
         ) {
-            Collection<Entity> entities = block.getWorld().getNearbyEntities(block.getLocation(), 0.5, 0.5, 0.5, entity -> entity.getType() != EntityType.DROPPED_ITEM);
+            Location blockCenter = block.getLocation().add(0.5, 0.5, 0.5);
+            Collection<Entity> entities = block.getWorld().getNearbyEntities(blockCenter, 0.5, 0.5, 0.5, entity -> entity.getType() != EntityType.DROPPED_ITEM);
             return entities.isEmpty();
         }
         return false;
